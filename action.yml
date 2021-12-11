@@ -5,6 +5,9 @@ inputs:
   token:
     description: "A GitHub token for creating a release"
     required: true
+  slack_webhook_url:
+    description: "A Slack incoming Webhook URL"
+    required: true
 
 runs:
   using: "composite"
@@ -43,3 +46,12 @@ runs:
         branch: main
         message: "Post release version bump\n\n[skip ci]"
         add: "-u *"
+
+    - name: Send release announcement to osbuild Slack channel
+      id: slack
+      uses: slackapi/slack-github-action@v1.16.0
+      with:
+        payload: "{\"blocks\":[{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"🚀 *<https://github.com/osbuild/${{  env.component }}/releases/tag/v${{  env.release_version }}|${{  env.component }} ${{  env.release_version }}>* just got released upstream! 🚀\"}}]}"
+      env:
+        SLACK_WEBHOOK_URL: ${{ inputs.SLACK_WEBHOOK_URL }}
+        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
